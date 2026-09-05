@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subnet Calculator</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    max-width: 600px;
+    margin: 40px auto;
+    padding: 0 20px;
+    background: #0f1115;
+    color: #e8e8e8;
+  }
+  h1 {
+    color: #4CAF50;
+    text-align: center;
+  }
+  .card {
+    background: #1a1d24;
+    border-radius: 10px;
+    padding: 25px;
+    margin-top: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+  }
+  label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-size: 14px;
+    color: #aaa;
+  }
+  input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #333;
+    background: #0f1115;
+    color: #fff;
+    font-size: 15px;
+    box-sizing: border-box;
+  }
+  button {
+    width: 100%;
+    margin-top: 20px;
+    padding: 12px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+  }
+  button:hover {
+    background: #43a047;
+  }
+  .result {
+    margin-top: 20px;
+    background: #0f1115;
+    border-radius: 6px;
+    padding: 15px;
+    font-family: Consolas, monospace;
+    font-size: 14px;
+    line-height: 1.8;
+    display: none;
+  }
+  .result.show {
+    display: block;
+  }
+  .result div {
+    display: flex;
+    justify-content: space-between;
+    border-bottom: 1px solid #222;
+    padding: 4px 0;
+  }
+  .error {
+    color: #ff6b6b;
+    margin-top: 10px;
+    font-size: 14px;
+    display: none;
+  }
+</style>
+</head>
+<body>
+
+<h1>Subnet Calculator</h1>
+
+<div class="card">
+  <label for="ip">IP Address (e.g. 192.168.1.10)</label>
+  <input type="text" id="ip" placeholder="192.168.1.10">
+
+  <label for="mask">CIDR (e.g. 24) or Mask (e.g. 255.255.255.0)</label>
+  <input type="text" id="mask" placeholder="24">
+
+  <button onclick="calculate()">Calculate</button>
+
+  <div class="error" id="error"></div>
+
+  <div class="result" id="result">
+    <div><span>Subnet Mask</span><span id="r-mask"></span></div>
+    <div><span>Network Address</span><span id="r-network"></span></div>
+    <div><span>Broadcast Address</span><span id="r-broadcast"></span></div>
+    <div><span>First Usable Host</span><span id="r-first"></span></div>
+    <div><span>Last Usable Host</span><span id="r-last"></span></div>
+    <div><span>Total Hosts</span><span id="r-total"></span></div>
+    <div><span>Usable Hosts</span><span id="r-usable"></span></div>
+  </div>
+</div>
+
+<script>
+function ipToBinary(ip) {
+  return ip.split('.').map(o => parseInt(o).toString(2).padStart(8, '0')).join('');
+}
+
+function binaryToIp(binary) {
+  const octets = [];
+  for (let i = 0; i < 32; i += 8) {
+    octets.push(parseInt(binary.substring(i, i + 8), 2));
+  }
+  return octets.join('.');
+}
+
+function cidrToMaskBinary(cidr) {
+  return '1'.repeat(cidr) + '0'.repeat(32 - cidr);
+}
+
+function getCidrFromInput(maskInput) {
+  if (maskInput.includes('.')) {
+    const bin = ipToBinary(maskInput);
+    return (bin.match(/1/g) || []).length;
+  }
+  return parseInt(maskInput);
+}
+
+function isValidIp(ip) {
+  const parts = ip.split('.');
+  if (parts.length !== 4) return false;
+  return parts.every(p => /^\d+$/.test(p) && parseInt(p) >= 0 && parseInt(p) <= 255);
+}
+
+function calculate() {
+  const ip = document.getElementById('ip').value.trim();
+  const maskInput = document.getElementById('mask').value.trim();
+  const errorDiv = document.getElementById('error');
+  const resultDiv = document.getElementById('result');
+
+  errorDiv.style.display = 'none';
+  resultDiv.classList.remove('show');
+
+  try {
+    if (!isValidIp(ip)) throw new Error('Sahi IP address daaliye (jaise 192.168.1.10)');
+
+    const cidr = getCidrFromInput(maskInput);
+    if (isNaN(cidr) || cidr < 0 || cidr > 32) throw new Error('CIDR 0 se 32 ke beech hona chahiye');
+
+    const ipBin = ipToBinary(ip);
+    const maskBin = cidrToMaskBinary(cidr);
+
+    let networkBin = '';
+    for (let i = 0; i < 32; i++) {
+      networkBin += (ipBin[i] === '1' && maskBin[i] === '1') ? '1' : '0';
+    }
+
+    const broadcastBin = networkBin.substring(0, cidr) + '1'.repeat(32 - cidr);
+    const networkIp = binaryToIp(networkBin);
+    const broadcastIp = binaryToIp(broadcastBin);
+
+    const hostBits = 32 - cidr;
+    const totalHosts = Math.pow(2, hostBits);
+
+    let usableHosts, firstHost, lastHost;
+    if (cidr <= 30) {
+      usableHosts = totalHosts - 2;
+      const networkNum = parseInt(networkBin, 2);
+      const broadcastNum = parseInt(broadcastBin, 2);
+      firstHost = binaryToIp((networkNum + 1).toString(2).padStart(32, '0'));
+      lastHost = binaryToIp((broadcastNum - 1).toString(2).padStart(32, '0'));
+    } else {
+      usableHosts = totalHosts;
+      firstHost = networkIp;
+      lastHost = broadcastIp;
+    }
+
+    document.getElementById('r-mask').textContent = binaryToIp(maskBin) + ' (/' + cidr + ')';
+    document.getElementById('r-network').textContent = networkIp;
+    document.getElementById('r-broadcast').textContent = broadcastIp;
+    document.getElementById('r-first').textContent = firstHost;
+    document.getElementById('r-last').textContent = lastHost;
+    document.getElementById('r-total').textContent = totalHosts;
+    document.getElementById('r-usable').textContent = usableHosts;
+
+    resultDiv.classList.add('show');
+  } catch (e) {
+    errorDiv.textContent = e.message;
+    errorDiv.style.display = 'block';
+  }
+}
+</script>
+
+</body>
+</html>
