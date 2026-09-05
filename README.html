@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Subnet Calculator</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    max-width: 800px;
+    margin: 40px auto;
+    padding: 0 20px;
+    line-height: 1.6;
+    color: #222;
+    background: #fafafa;
+  }
+  h1 {
+    color: #1a5c1a;
+    border-bottom: 3px solid #4CAF50;
+    padding-bottom: 8px;
+  }
+  h2 {
+    color: #2c662d;
+    margin-top: 30px;
+  }
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin: 15px 0;
+  }
+  th, td {
+    border: 1px solid #ccc;
+    padding: 8px 12px;
+    text-align: left;
+  }
+  th {
+    background: #e8f5e9;
+  }
+  code, pre {
+    background: #f0f0f0;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: Consolas, monospace;
+  }
+  pre {
+    padding: 12px;
+    overflow-x: auto;
+  }
+  ul {
+    padding-left: 22px;
+  }
+  hr {
+    border: none;
+    border-top: 1px solid #ddd;
+    margin: 25px 0;
+  }
+</style>
+</head>
+<body>
+
+<h1>Subnet Calculator</h1>
+<p>Python mein banaya gaya ek tool jo IP address aur subnet mask se network details calculate karta hai. CLI aur GUI (Tkinter) dono versions available hain.</p>
+
+<hr>
+
+<h2>Subnetting kya hai?</h2>
+<p>Subnetting ek bade network ko chhote-chhote parts (subnets) mein baantne ka tarika hai. Companies isko use karti hain:</p>
+<ul>
+  <li><b>Security ke liye</b> — alag department (HR, Finance, IT) alag subnet mein, taaki ek jagah problem aaye to doosri jagah asar na ho</li>
+  <li><b>Traffic manage karne ke liye</b> — poora network ek jagah slow nahi hota</li>
+  <li><b>IP address bachane ke liye</b> — jitne devices utna hi size ka subnet banate hain, waste nahi hota</li>
+  <li><b>Troubleshooting aasan</b> — problem sirf ek subnet mein dhundhni padti hai, poore network mein nahi</li>
+</ul>
+<p>Network Engineers aur System Admins ye kaam roz karte hain jab naya office ya server setup karte hain.</p>
+
+<hr>
+
+<h2>Ye calculator kya nikalta hai</h2>
+<table>
+  <tr><th>Term</th><th>Matlab</th></tr>
+  <tr><td>Network Address</td><td>Us subnet ka "naam" (pehla address)</td></tr>
+  <tr><td>Broadcast Address</td><td>Poore subnet ko message bhejne ka address (last address)</td></tr>
+  <tr><td>First/Last Usable Host</td><td>Devices ko diye ja sakne wale IP range</td></tr>
+  <tr><td>Total Hosts</td><td>Subnet mein total kitne addresses hain</td></tr>
+  <tr><td>Usable Hosts</td><td>Total minus 2 (Network + Broadcast reserved hote hain)</td></tr>
+</table>
+
+<hr>
+
+<h2>Calculation kaise hoti hai (concept)</h2>
+<p><b>Example: IP = 192.168.1.10, Mask = 255.255.255.0 (/24)</b></p>
+<ol>
+  <li><b>Network Address</b> = IP aur Mask ka AND (jahan mask 255 hai wahan IP ka number, jahan 0 hai wahan 0):
+    <pre>192.168.1.10  AND  255.255.255.0  =  192.168.1.0</pre>
+  </li>
+  <li><b>Broadcast Address</b> = Network ke host-part ko 255 (sab 1) bana do:
+    <pre>192.168.1.255</pre>
+  </li>
+  <li><b>Usable Range</b> = Network se ek aage, Broadcast se ek pehle:
+    <pre>192.168.1.1  se  192.168.1.254</pre>
+  </li>
+  <li><b>Total Hosts</b> = last octet mein 0-255 = <b>256</b><br>
+      <b>Usable Hosts</b> = 256 − 2 = <b>254</b>
+  </li>
+</ol>
+<p>CIDR number (<code>/24</code>) batata hai ki mask mein kitne bits <code>1</code> (network) hain — jitna chhota CIDR utna bada subnet, jitna bada CIDR utna chhota subnet.</p>
+
+<hr>
+
+<h2>Kaise chalayein</h2>
+<p><b>CLI version:</b></p>
+<pre>python3 subnet_calculator.py</pre>
+<p>IP aur CIDR/mask terminal mein type karo, Enter dabao — result print ho jayega.</p>
+
+<p><b>GUI version:</b></p>
+<pre>python3 subnet_calculator_gui.py</pre>
+<p>Ek window khulegi, IP aur CIDR box mein daal kar "Calculate" button dabao.</p>
+
+<hr>
+
+<h2>Files</h2>
+<ul>
+  <li><code>subnet_calculator.py</code> — Terminal-based version</li>
+  <li><code>subnet_calculator_gui.py</code> — Tkinter GUI version</li>
+</ul>
+
+<h2>Requirements</h2>
+<p>Python 3.x (GUI ke liye Tkinter, jo Python ke saath hi aata hai)</p>
+
+<hr>
+
+<h2>Kya seekha is project se</h2>
+<ul>
+  <li>Subnetting concepts (Network/Broadcast address, usable hosts)</li>
+  <li>Python mein bitwise/binary logic implement karna</li>
+  <li>CLI aur GUI dono banana</li>
+</ul>
+
+</body>
+</html>
